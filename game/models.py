@@ -126,7 +126,7 @@ class Ship(TimeStampedModel):
             MaxValueValidator(5),
             MinValueValidator(0)
         ])
-    coordinates = JSONField(default={})
+    coordinates = JSONField()
 
     def place_on_board(self):
         while True:
