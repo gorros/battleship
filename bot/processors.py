@@ -58,9 +58,9 @@ class FBProcessor:
         if not created:
             FBConnector.post_quick_replies(self.fb_id, "You have unfinished battle. "
                                                   "Do you want to continue or finish it?", [
-            FBConnector.create_quick_reply("Finish",
-                                           FBProcessor.create_payload(FBProcessor.ACTIONS.CONTINUE_GAME)),
             FBConnector.create_quick_reply("Continue",
+                                           FBProcessor.create_payload(FBProcessor.ACTIONS.CONTINUE_GAME)),
+            FBConnector.create_quick_reply("Finish",
                                            FBProcessor.create_payload(FBProcessor.ACTIONS.FINISH_GAME))
                                            ])
         else:
