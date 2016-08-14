@@ -1,4 +1,5 @@
 import json
+import os
 from pprint import pprint
 
 import requests
@@ -6,8 +7,8 @@ from django.conf import settings
 
 
 class FBConnector:
-    PAGE_ACCESS_TOKEN = "EAAOMnjfeZBJMBAG6KaZCTnuRtkVLSCBnf5ULuWZBYkmyerT8oTUo8qCVM35xy6pzQSEXnM8osH39usezWyKOsS6p0y7cZAr6ZBZB2ZCP4ZBMVr7yXemupmNP2CftPym8qY6tZBzASadnZB1REj8DvDMLHzd3ezRIDZAekbaZBBGcphwm1wZDZD"
-    VERIFY_TOKEN = "gorros_token"
+    PAGE_ACCESS_TOKEN = os.environ["PAGE_ACCESS_TOKEN"]
+    VERIFY_TOKEN = os.environ["VERIFY_TOKEN"]
     POST_MESSAGE_URL = 'https://graph.facebook.com/v2.6/me/messages?access_token={}'.format(PAGE_ACCESS_TOKEN)
     USER_DETAILS_URL = "https://graph.facebook.com/v2.6/{}"
 
