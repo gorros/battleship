@@ -76,7 +76,7 @@ class Battle(TimeStampedModel):
                 Move.objects.create(battle=self, by=Move.COMPUTER, x=x, y=y)
                 break
 
-        return coord_str
+        return coord_str  # Should return str or Coordinate?
 
     def process_player_reply(self, reply):
         if reply == Battle.HIT:

@@ -42,7 +42,7 @@ INSTALLED_APPS = [
     'bot'
 ]
 
-PLAYER_MODEL = 'bot.FBUser'
+PLAYER_USER_MODEL = 'bot.FBUser'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

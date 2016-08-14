@@ -2,7 +2,6 @@ import json
 from pprint import pprint
 
 import requests
-import logging
 from django.conf import settings
 
 

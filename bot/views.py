@@ -1,44 +1,34 @@
 import json
+import re
 from pprint import pprint
 
 from django.conf import settings
-from django.views import generic
 from django.http.response import HttpResponse
-
-from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
-
+from django.views import generic
+from django.views.decorators.csrf import csrf_exempt
 
 # Create your views here.
 from bot.connectors import FBConnector
-from bot.models import FBUser
-from bot.utils import Enum
-
-ACTIONS = Enum(["PLAY_GAME", "DO_NOT_PLAY_GAME"])
+from bot.processors import FBProcessor
+from game.utils import Coordinate
 
 
-def create_payload(action, **kwargs):
-    p = dict()
-    if action in ACTIONS:
-        p["action"] = action
+def process_facebook_postback(fb_id, postback):
+    fb_processor = FBProcessor(fb_id)
+    payload = postback.get("payload")
+
+    if not payload:
+        return
     else:
-        raise ValueError("Wrong action")
-    if kwargs:
-        p.update(kwargs)
+        payload = json.loads(payload)
+    action = payload.get("action")
 
-    return json.dumps(p)
+    fb_processor.process_action(action)
 
 
 def process_facebook_message(fb_id, received_msg):
-    fb_user, created = FBUser.objects.get_or_create(fb_id=fb_id)
-    if created:
-        user_details = FBConnector.get_user_details(fb_id)
-        fb_user.first_name = user_details.get('first_name')
-        last_name = user_details.get('last_name')
-        if last_name:
-            fb_user.last_name = last_name
-        fb_user.save()
-        FBConnector.post_message(fb_id, "Hi " + fb_user.first_name)
+    fb_processor = FBProcessor(fb_id)
 
     if "quick_reply" in received_msg:
         payload = received_msg.get("quick_reply", {}).get("payload")
@@ -47,21 +37,16 @@ def process_facebook_message(fb_id, received_msg):
         else:
             payload = json.loads(payload)
         action = payload.get("action")
-        if action not in ACTIONS:
-            return
 
-        elif action == ACTIONS.PLAY_GAME:
-            FBConnector.post_message(fb_id, "Ok, let's start.")
-
-        elif action == ACTIONS.DO_NOT_PLAY_GAME:
-            FBConnector.post_message(fb_id, "Ok, maybe next time.")
+        fb_processor.process_action(action)
 
     else:
-        create_quick_replies = [
-            FBConnector.create_quick_reply("Yes", create_payload(ACTIONS.PLAY_GAME)),
-            FBConnector.create_quick_reply("No", create_payload(ACTIONS.DO_NOT_PLAY_GAME))
-        ]
-        FBConnector.post_quick_replies(fb_id, "Would you like to play battleship?", create_quick_replies)
+        match = re.search(r"\(\s*\d\d?\s*,\s*\d\d?\s*\)", received_msg.get("text"))
+        if match:
+            coordinate = Coordinate.str_to_coordinate(match.group(0))
+            fb_processor.process_player_move(coordinate)
+        else:
+            fb_processor.ask_to_play()
 
 
 class FBBotView(generic.View):
@@ -95,4 +80,8 @@ class FBBotView(generic.View):
                     # Assuming the sender only sends text. Non-text messages like stickers, audio, pictures
                     # are sent as attachments and must be handled accordingly.
                     process_facebook_message(message['sender']['id'], message['message'])
+                elif "postback" in message:
+                    if getattr(settings, "DEBUG", None):
+                        pprint(message)
+                    process_facebook_postback(message['sender']['id'], message['postback'])
         return HttpResponse()
