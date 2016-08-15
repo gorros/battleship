@@ -54,7 +54,7 @@ class FBProcessor:
             process()
 
     def play_game(self):
-        self.battle, created = Battle.objects.get_or_create(player=self.fb_user, status=Battle.ACTIVE)
+        battle, created = Battle.objects.get_or_create(player=self.fb_user, status=Battle.ACTIVE)
         if not created:
             FBConnector.post_quick_replies(self.fb_id, "You have unfinished battle. "
                                                   "Do you want to continue or finish it?", [
