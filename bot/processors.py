@@ -5,6 +5,14 @@ from bot.models import FBUser
 from bot.utils import Enum
 from game.models import Battle
 
+ACTIONS = Enum(["PLAY_GAME",
+                "DO_NOT_PLAY_GAME",
+                "CONTINUE_GAME",
+                "FINISH_GAME",
+                "HIT",
+                "MISS"
+                ])
+
 
 class FBProcessor:
     def __init__(self, fb_id):
@@ -20,18 +28,10 @@ class FBProcessor:
             fb_user.save()
             FBConnector.post_message(fb_id, "Hi " + fb_user.first_name)
 
-    ACTIONS = Enum(["PLAY_GAME",
-                    "DO_NOT_PLAY_GAME",
-                    "CONTINUE_GAME",
-                    "FINISH_GAME",
-                    "HIT",
-                    "MISS"
-                    ])
-
     @staticmethod
     def create_payload(action, **kwargs):
         p = dict()
-        if action in FBProcessor.ACTIONS:
+        if action in ACTIONS:
             p["action"] = action
         else:
             raise ValueError("Wrong action")
@@ -42,26 +42,26 @@ class FBProcessor:
 
     def process_action(self, action):
         process = {
-            "PLAY_GAME": self.play_game,
-            "DO_NOT_PLAY_GAME": self.do_not_play_game,
-            "CONTINUE_GAME": self.continue_game,
-            "FINISH_GAME": self.finish_game,
-            "HIT": self.process_hit,
-            "MISS": self.process_miss
+            ACTIONS.PLAY_GAME: self.play_game,
+            ACTIONS.DO_NOT_PLAY_GAME: self.do_not_play_game,
+            ACTIONS.CONTINUE_GAME: self.continue_game,
+            ACTIONS.FINISH_GAME: self.finish_game,
+            ACTIONS.HIT: self.process_hit,
+            ACTIONS.MISS: self.process_miss
             }.get(action)
 
         if process:
             process()
 
     def play_game(self):
-        battle, created = Battle.objects.get_or_create(player=self.fb_user, status=Battle.ACTIVE)
+        self.battle, created = Battle.objects.get_or_create(player=self.fb_user, status=Battle.ACTIVE)
         if not created:
             FBConnector.post_quick_replies(self.fb_id, "You have unfinished battle. "
                                                   "Do you want to continue or finish it?", [
             FBConnector.create_quick_reply("Continue",
-                                           FBProcessor.create_payload(FBProcessor.ACTIONS.CONTINUE_GAME)),
+                                           FBProcessor.create_payload(ACTIONS.CONTINUE_GAME)),
             FBConnector.create_quick_reply("Finish",
-                                           FBProcessor.create_payload(FBProcessor.ACTIONS.FINISH_GAME))
+                                           FBProcessor.create_payload(ACTIONS.FINISH_GAME))
                                            ])
         else:
             FBConnector.post_message(self.fb_id, "Ok, let's start. Please enter coordinates (ex. (1, 4))")
@@ -79,9 +79,9 @@ class FBProcessor:
         FBConnector.post_quick_replies(self.fb_id, "You previous battle is finished. "
                                               "Would you like to start new battle?", [
            FBConnector.create_quick_reply("Yes",
-                                          FBProcessor.create_payload(FBProcessor.ACTIONS.PLAY_GAME)),
+                                          FBProcessor.create_payload(ACTIONS.PLAY_GAME)),
            FBConnector.create_quick_reply("No",
-                                          FBProcessor.create_payload(FBProcessor.ACTIONS.DO_NOT_PLAY_GAME))
+                                          FBProcessor.create_payload(ACTIONS.DO_NOT_PLAY_GAME))
                                        ])
 
     def do_not_play_game(self):
@@ -98,9 +98,9 @@ class FBProcessor:
             battle.save()
             FBConnector.post_quick_replies(self.fb_id, "I won. Would you like to start new battle?", [
                 FBConnector.create_quick_reply("Yes",
-                                               FBProcessor.create_payload(FBProcessor.ACTIONS.PLAY_GAME)),
+                                               FBProcessor.create_payload(ACTIONS.PLAY_GAME)),
                 FBConnector.create_quick_reply("No",
-                                               FBProcessor.create_payload(FBProcessor.ACTIONS.DO_NOT_PLAY_GAME))
+                                               FBProcessor.create_payload(ACTIONS.DO_NOT_PLAY_GAME))
             ])
         else:
             FBConnector.post_message(self.fb_id, "Ok, let's continue. Please enter coordinates (ex. (1, 4))")
@@ -130,22 +130,22 @@ class FBProcessor:
             battle.save()
             FBConnector.post_quick_replies(self.fb_id, "You won. Would you like to start new battle?", [
                 FBConnector.create_quick_reply("Yes",
-                                               FBProcessor.create_payload(FBProcessor.ACTIONS.PLAY_GAME)),
+                                               FBProcessor.create_payload(ACTIONS.PLAY_GAME)),
                 FBConnector.create_quick_reply("No",
-                                               FBProcessor.create_payload(FBProcessor.ACTIONS.DO_NOT_PLAY_GAME))
+                                               FBProcessor.create_payload(ACTIONS.DO_NOT_PLAY_GAME))
             ])
         else:
             guess = battle.make_guess()
             text = "{} \n My guess is {} . Did I hit or miss?".format(text, guess)
             FBConnector.post_quick_replies(self.fb_id, text, [
                 FBConnector.create_quick_reply("Hit",
-                                               FBProcessor.create_payload(FBProcessor.ACTIONS.HIT)),
+                                               FBProcessor.create_payload(ACTIONS.HIT)),
                 FBConnector.create_quick_reply("Miss",
-                                               FBProcessor.create_payload(FBProcessor.ACTIONS.MISS))
+                                               FBProcessor.create_payload(ACTIONS.MISS))
             ])
 
     def ask_to_play(self):
         FBConnector.post_quick_replies(self.fb_id, "Would you like to play battleship?", [
-            FBConnector.create_quick_reply("Yes", FBProcessor.create_payload(FBProcessor.ACTIONS.PLAY_GAME)),
-            FBConnector.create_quick_reply("No", FBProcessor.create_payload(FBProcessor.ACTIONS.DO_NOT_PLAY_GAME))
+            FBConnector.create_quick_reply("Yes", FBProcessor.create_payload(ACTIONS.PLAY_GAME)),
+            FBConnector.create_quick_reply("No", FBProcessor.create_payload(ACTIONS.DO_NOT_PLAY_GAME))
         ])
