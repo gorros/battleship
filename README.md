@@ -4,9 +4,9 @@
 
 You can find game description [here](https://en.wikipedia.org/wiki/Battleship_%28game%29#Description).
 
-Currently bot uses following typical complements of ships:
+### Ship complement
 
-| #   | Class of ship	Size  | Size  |
+| #   | Class of ship  | Size  |
 | --- |:--------------------:| -----:|
 | 1 | Aircraft carrier | 5 |
 | 1 | Battleship       | 4 |
