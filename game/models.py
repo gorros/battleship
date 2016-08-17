@@ -45,10 +45,11 @@ class Battle(TimeStampedModel):
     status = models.IntegerField(choices=STATUS_CHOICES, default=ACTIVE)
 
     def set_up_computer_board(self):
-        for category in Ship.CATEGORY_CHOICES:
-            ship = Ship(battle=self, category=category[0], health=category[0])
-            ship.place_on_board()
-            ship.save()
+        for category, _ in Ship.CATEGORY_CHOICES:
+            for quantity in range(Ship.QUANTITY_PER_CATEGORY.get(category)):
+                ship = Ship(battle=self, category=category, health=category)
+                ship.place_on_board()
+                ship.save()
 
     def make_player_move(self, coordinate):
         Move.objects.create(battle=self, by=Move.PLAYER, x=coordinate.x, y=coordinate.y)
@@ -108,6 +109,14 @@ class Ship(TimeStampedModel):
     CRUISER = 3
     DESTROYER = 2
     SUBMARINE = 1
+
+    QUANTITY_PER_CATEGORY = {
+        AIRCRAFT_CONTAINER: 1,
+        BATTLE_SHIP: 1,
+        CRUISER: 1,
+        DESTROYER: 2,
+        SUBMARINE: 2
+    }
 
     DAMAGED = 1
     INTACT = 0
