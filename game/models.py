@@ -129,17 +129,35 @@ class Ship(TimeStampedModel):
     coordinates = JSONField()
 
     def place_on_board(self):
+        # TODO: consider using Celery for this operation
         while True:
             self.coordinates = dict()
             x = random.randint(1, 10)
             y = random.randint(1, 10)
             o = random.choice(['v', 'h'])
             for i in range(self.category):
-                coord_str = str(Coordinate(x + i, y)) if o == 'v' else str(Coordinate(x, y + i))
-                if self.battle.computer_board.get(coord_str) != 0:
+                if o == 'v':
+                    if not (1 <= x + i <= 10):
+                        break
+                    center = Coordinate(x + i, y)
+                    overlap = [self.battle.computer_board.get(str(Coordinate(m, n))) != 0
+                               for m in range(x + i - 1, x + i + 2)
+                               for n in range(y - 1, y + 2)
+                               if 1 <= m <= 10 if 1 <= m <= 10]
+
+                else:
+                    if not (1 <= y + i <= 10):
+                        break
+                    center = Coordinate(x, y + i)
+                    overlap = [self.battle.computer_board.get(str(Coordinate(m, n))) != 0
+                               for m in range(x - 1, x + 2)
+                               for n in range(y + i - 1, y + i + 2)
+                               if 1 <= m <= 10 if 1 <= m <= 10]
+
+                if any(overlap):
                     break
                 else:
-                    self.coordinates.update({coord_str: Ship.INTACT})
+                    self.coordinates.update({str(center): Ship.INTACT})
             else:
                 break
             continue

@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from django.test import TestCase
 
 # Create your tests here.
+from bot.models import FBUser
 from game.models import Battle, Ship
 from game.utils import Coordinate
 
@@ -49,7 +50,7 @@ def generate_player_board():
 
 class BattleTestCase(TestCase):
     def setUp(self):
-        self.user = User.objects.create_user(username='test', email='test@test.gmail', password='top_secret')
+        self.user = FBUser.objects.create(fb_id='1111111', first_name='Test')
 
     def test_board_setup(self):
 
