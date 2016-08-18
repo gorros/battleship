@@ -78,6 +78,9 @@ class BattleTestCase(TestCase):
         battle.process_player_reply(0)
         print_player_board(battle.player_board)
 
+    def test_initial_health(self):
+        assert Ship.get_total_initial_health() == 18
+
     def test_game(self):
         battle = Battle.objects.create(player=self.user)
         battle.set_up_computer_board()

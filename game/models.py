@@ -177,7 +177,7 @@ class Ship(TimeStampedModel):
 
     @classmethod
     def get_total_initial_health(cls):
-        return sum(choice[0] for choice in cls.CATEGORY_CHOICES)
+        return sum(category * cls.QUANTITY_PER_CATEGORY.get(category) for category, _ in cls.CATEGORY_CHOICES)
 
 
 class Move(TimeStampedModel):
